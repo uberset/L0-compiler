@@ -68,7 +68,38 @@ object TestGeneratorJVM {
                    |: 10 i . .n
                    |     i 1 + -> i
                    |i 5 if <= 10
-                   |""".stripMargin)
+                   |""".stripMargin),
+            test("swap1",
+                """"2-1=" .s
+                   1 2 swap - .
+                """.stripMargin),
+            test("alabel",
+                """: loop "hello " .s goto loop
+                """.stripMargin),
+            test("fun1",
+                """; implementing and testing a function with one argument
+                  |"successor of 1 is " .s
+                  |1 gosub successor .
+                  |goto end
+                  |: successor ; pop an integer from stack
+                  |            ; push the value + 1
+                  |    ; move return address down
+                  |    swap    ; value, return address -> return address, value
+                  |    1 +     ; value + 1
+                  |    ; move return address up again
+                  |    swap    ; return address, value + 1 -> value +1 , return address
+                  |return
+                  |: end
+                """.stripMargin),
+            test("recur",
+                """"factorial of 5 is " .s
+                  |5 gosub factorial .
+                  |goto end
+                  |: factorial swap dup 0 if = eins
+                  |    dup 1 - gosub factorial * swap return
+                  |    : eins drop 1 swap return
+                  |: end
+                """.stripMargin)
         )
         val tests = results.size
         val passed = results.filter(identity).size

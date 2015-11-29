@@ -68,6 +68,9 @@ object GeneratorJVM {
             case If(rel: String, nr: String) => stmIf(rel, nr, s)
             case Gosub(nr: String) => gosub(nr, s)
             case Return() => stmReturn(s)
+            case Swap() => swap(s)
+            case Dup() => dup(s)
+            case Drop() => drop(s)
         }
     }
 
@@ -225,13 +228,8 @@ object GeneratorJVM {
         s.out.append(s"$lbl:\n")
     }
 
-    def labelString(nr: String) = {
-        try {
-            val i = nr.toInt
-            s"LBL_$i"
-        } catch {
-            case e: NumberFormatException => fail(s"Label '$nr' must be a number.")
-        }
+    def labelString(lbl: String) = {
+        s"LBL_$lbl"
     }
 
     def goto(nr: String, s: Status): Unit = {
@@ -266,6 +264,24 @@ object GeneratorJVM {
         s.out.append(
             """astore 0
               |ret 0
+              |""".stripMargin)
+    }
+
+    def swap(s: Status): Unit = {
+        s.out.append(
+            """swap
+              |""".stripMargin)
+    }
+
+    def dup(s: Status): Unit = {
+        s.out.append(
+            """dup
+              |""".stripMargin)
+    }
+
+    def drop(s: Status): Unit = {
+        s.out.append(
+            """pop
               |""".stripMargin)
     }
 

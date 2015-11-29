@@ -27,6 +27,9 @@ case class MulI() extends Statement
 case class DivI() extends Statement
 case class NegI() extends Statement
 case class Return() extends Statement
+case class Swap() extends Statement
+case class Dup() extends Statement
+case class Drop() extends Statement
 
 abstract sealed class Declaration
 case class DeclVar(id: String) extends Declaration

@@ -49,6 +49,9 @@ object Parser {
                 case "goto" => buf.append(Goto(getWord(in)))
                 case "gosub" => buf.append(Gosub(getWord(in)))
                 case "return" => buf.append(Return())
+                case "swap" => buf.append(Swap())
+                case "dup" => buf.append(Dup())
+                case "drop" => buf.append(Drop())
                 case RIdentifier() => buf.append(PushVar(word))
                 case _ => throw new Exception(s"unknown word: $word")
             }
