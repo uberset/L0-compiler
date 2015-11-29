@@ -12,31 +12,44 @@ object Library8086 {
 
     def library(out: ListBuffer[String]): Unit = {
         out.append(
+            printc,
             prints,
             println,
             printi,
             int2decimal,
             inputs,
-            inputi
+            inputi,
+            copystr
         )
     }
+
+    val printc =
+"""
+printc:	; (AL)->()
+        ; print a char to stdout
+        mov dl, al      ; load character
+        mov ah, 2		; output char to stdout (ah: 02, dl: char)
+        int 0x21		; DOS
+.end:	ret
+"""
 
     val prints =
 """
 prints:	; (AX)->()
         ; print a string to stdout
         ; string start address in AX
-        ; string must be terminated with null
+        ; string length at [AX-2]
 
         mov bx, ax
-.l:
+        mov cx, [bx-2]  ; length
+        cmp cx, 0
+        je  .end
+.loop:
         mov dl,[bx]     ; load character
-        cmp dl, 0
-        jz  .end
         mov ah,2		; output char to stdout (ah: 02, dl: char)
         int 0x21		; DOS
         inc bx
-        jmp .l
+        loop .loop
 .end:	ret
 """
 
@@ -50,7 +63,8 @@ println:; ()->()
         call prints
         pop ax  ; restore
         ret
-.line:	db 0x0A, 0x0D, 0
+.size:  dw 2
+.line:	db 0x0A, 0x0D
 """
 
     val printi =
@@ -75,7 +89,7 @@ int2decimal:
 .unsigned:
         mov bx, .buffer
         mov [bx], dl	; sign
-        mov cx, .endbuf-2
+        mov cx, .endbuf-1
 .next:	mov dx, 0
         mov bx, 10
         div bx	; ax = (dx, ax) / bx
@@ -93,11 +107,15 @@ int2decimal:
         jne .end    ; no sign
         dec bx
         mov [bx], dl    ; copy sign
-.end:   mov ax, bx      ; result
+.end:   mov ax, .endbuf
+        sub ax, bx      ; size
+        mov [bx-2], ax
+        mov ax, bx      ; pointer
         ret
 
 section .data
-.buffer	db		"-", "12345", 0
+        dw      0 ; size
+.buffer	db		"-", "12345"
 .endbuf:
 section .text
 """
@@ -177,14 +195,26 @@ s2int:  ; (AX)->(AX)
         neg ax
 .end:	ret
 """
-    /*
-            out.append(
+
+    val copystr =
 """
-
-
-
-
-"""     )
-    */
-
+copystr:; (AX, BX)->()
+        ; copy from a string reference to a string buffer
+        ; AX: source
+        ; BX: destination
+        ; check length
+        mov si, ax
+        mov di, bx
+        mov cx, [si-2]  ; src size
+        mov bx, [di-4]  ; dst max size
+        cmp cx, bx
+        jbe .size_ok
+        mov cx, bx      ; cut string
+.size_ok:
+        mov [di-2], cx  ; size to dst
+        cld             ; direction: inc
+        rep
+        movsb           ; loop copy
+        ret
+"""
 }

@@ -31,25 +31,41 @@ class Backend(programName : String) { this: Generator =>
         dcl match {
             case DeclVar(id: String) => declVar(id)
             case DeclArr(id: String, size: String) => declArr(id, size)
+            case DeclStr(id: String, size: String) => declStr(id, size)
         }
     }
 
     def declVar(id: String): Unit = {
         if(id.isEmpty) fail("Variable name expected.")
         if(varNames.contains(id)) fail(s"Variable '$id' is already declared")
-        if(arraySizes.contains(id)) fail(s"Array '$id' is already declared")
+        if(arrSizes.contains(id)) fail(s"Array '$id' is already declared")
+        if(strSizes.contains(id)) fail(s"String '$id' is already declared")
         varNames += id
     }
 
     def declArr(id: String, size: String): Unit = {
         if(id.isEmpty) fail("Variable name expected.")
         if(varNames.contains(id)) fail(s"Variable '$id' is already declared")
-        if(arraySizes.contains(id)) fail(s"Array '$id' is already declared")
+        if(arrSizes.contains(id)) fail(s"Array '$id' is already declared")
+        if(strSizes.contains(id)) fail(s"String '$id' is already declared")
         try {
             val i = size.toInt
-            arraySizes.put(id, i)
+            arrSizes.put(id, i)
         } catch {
-            case e: NumberFormatException => fail(s"Label '$size' must be a number.")
+            case e: NumberFormatException => fail(s"'$size' must be a number.")
+        }
+    }
+
+    def declStr(id: String, size: String): Unit = {
+        if(id.isEmpty) fail("Variable name expected.")
+        if(varNames.contains(id)) fail(s"Variable '$id' is already declared")
+        if(arrSizes.contains(id)) fail(s"Array '$id' is already declared")
+        if(strSizes.contains(id)) fail(s"String '$id' is already declared")
+        try {
+            val i = size.toInt
+            strSizes.put(id, i)
+        } catch {
+            case e: NumberFormatException => fail(s"'$size' must be a number.")
         }
     }
 
@@ -59,6 +75,7 @@ class Backend(programName : String) { this: Generator =>
             case PushShort(i) => pushShort(i.toShort)
             case PrintString() => printString()
             case PrintInteger() => printInteger()
+            case PrintChar() => printChar()
             case PrintNl() => printNl()
             case AddInteger() => addI()
             case SubI() => subI()
@@ -68,6 +85,8 @@ class Backend(programName : String) { this: Generator =>
             case InputInteger() => inputInteger()
             case PushVar(id) => pushVarOrArray(id)
             case SetVar(id) => setVarOrArray(id)
+            case CopyString(id) => copyString(id)
+            case RefSize() => refSize()
             case Label(nr: String) => label(nr)
             case Goto(nr: String) => goto(nr)
             case If(rel: String, nr: String) => stmIf(rel, nr)
@@ -76,6 +95,7 @@ class Backend(programName : String) { this: Generator =>
             case Swap() => swap()
             case Dup() => dup()
             case Drop() => drop()
+            case DereferenceChar() => dereferenceChar()
         }
     }
 
@@ -83,8 +103,10 @@ class Backend(programName : String) { this: Generator =>
         if(id.isEmpty) fail("Variable name expected.")
         if(varNames.contains(id))
             pushVar(id)
-        else if(arraySizes.contains(id))
+        else if(arrSizes.contains(id))
             pushArr(id)
+        else if(strSizes.contains(id))
+            pushStr(id)
         else
             fail(s"Variable '$id' is not declared")
     }
@@ -93,10 +115,18 @@ class Backend(programName : String) { this: Generator =>
         if(id.isEmpty) fail("Variable name expected.")
         if(varNames.contains(id))
             setVar(id)
-        else if(arraySizes.contains(id))
+        else if(arrSizes.contains(id))
             setArr(id)
         else
             fail(s"Variable '$id' is not declared")
+    }
+
+    def copyBuffer(id: String) = {
+        if(id.isEmpty) fail("Variable name expected.")
+        if(strSizes.contains(id))
+            copyString(id)
+        else
+            fail(s"String buffer '$id' is not declared")
     }
 
     def fail(message: String): Null = throw new Exception(message)

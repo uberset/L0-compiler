@@ -1,0 +1,7 @@
+gosub 100
+gosub 100
+gosub 100
+goto 999
+: 100 "Hello!" .s .n
+return
+: 999

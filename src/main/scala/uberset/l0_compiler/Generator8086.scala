@@ -17,9 +17,11 @@ trait Generator8086 extends Generator {
         // ( -> address )
         val nr = dataCount; dataCount += 1
         val lbl = s"DATA_$nr"
+        val size = str.length
         out.append(
             s"""section .data
-               |$lbl: db "$str", 0
+               |    dw $size
+               |$lbl: db "$str"
                |section .text
                |push ax
                |mov ax, $lbl
@@ -49,6 +51,15 @@ trait Generator8086 extends Generator {
         // ( value -> )
         out.append(
             """call printi
+              |pop ax
+              |""".stripMargin
+        )
+    }
+
+    override def printChar(): Unit = {
+        // ( char -> )
+        out.append(
+            """call printc
               |pop ax
               |""".stripMargin
         )
@@ -133,12 +144,40 @@ trait Generator8086 extends Generator {
         )
     }
 
+    override def copyString(id: String): Unit = {
+        // ( address -> )
+        out.append(
+            s"""mov bx, [STR_$id]
+               |call copystr
+               |pop ax
+               |""".stripMargin
+        )
+    }
+
+    override def refSize(): Unit = {
+        // ( address -> size )
+        out.append(
+            s"""mov bx, ax
+               |mov ax, [bx-2]
+               |""".stripMargin
+        )
+    }
+
     override def pushArr(id: String): Unit = {
         // ( index -> value )
         out.append(
             s"""mov si, ax
                |shl si, 1
                |mov ax, [ARR_$id+si]
+               |""".stripMargin
+        )
+    }
+
+    override def pushStr(id: String): Unit = {
+        // ( -> address )
+        out.append(
+            s"""push ax
+               |mov ax, [STR_$id]
                |""".stripMargin
         )
     }
@@ -224,9 +263,19 @@ trait Generator8086 extends Generator {
               |""".stripMargin)
     }
 
-    private def vars(): Unit = {
-        if(!varNames.isEmpty) {
-            // define all used variables in the data section
+    override def dereferenceChar(): Unit = {
+        // ( address, index -> [address + index] )
+        out.append(
+            """pop si
+              |mov bx, ax
+              |mov al, [bx + si]
+              |xor ah, ah
+              |""".stripMargin)
+    }
+
+    private def varsAndArrays(): Unit = {
+        if(!varNames.isEmpty || !arrSizes.isEmpty || !strSizes.isEmpty) {
+            // define all variables in the data section
             out.append("section .data\n")
             for (id <- varNames) {
                 val lbl = "VAR_" + id + ":"
@@ -235,18 +284,21 @@ trait Generator8086 extends Generator {
                        |""".stripMargin
                 )
             }
-            out.append("section .text\n")
-        }
-    }
-
-    private def arrs(): Unit = {
-        if(!arraySizes.isEmpty) {
-            // define all used arrays in the data section
-            out.append("section .data\n")
-            for ((id, size) <- arraySizes) {
+            // define all arrays in the data section
+            for ((id, size) <- arrSizes) {
                 val lbl = "ARR_" + id + ":"
                 out.append(
                     s"""$lbl   times ${size} dw 0
+                       |""".stripMargin
+                )
+            }
+            // define all strings in the data section
+            for ((id, size) <- strSizes) {
+                val lbl = "STR_" + id + ":"
+                out.append(
+                    s"""       dw    ${size}
+                       |       dw    0
+                       |$lbl   times ${size} dw 0
                        |""".stripMargin
                 )
             }
@@ -255,8 +307,7 @@ trait Generator8086 extends Generator {
     }
 
     override def prelude(): Unit = {
-        vars()
-        arrs()
+        varsAndArrays()
         out.append(
             s"""org 100h
                |mov ax, -1

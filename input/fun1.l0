@@ -1,0 +1,7 @@
+; implementing and testing a function with one argument
+; and one return value
+"successor of 1 is " .s
+1 gosub successor .
+goto end
+: successor 1 + return
+: end

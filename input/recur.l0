@@ -1,0 +1,7 @@
+"factorial of 5 is " .s
+5 gosub factorial .
+goto end
+: factorial dup 0 if = eins
+    dup 1 - gosub factorial * return
+    : eins drop 1 return
+: end
