@@ -104,7 +104,7 @@ trait GeneratorJVM extends Generator {
     }
 
     override def setVar(id: String): Unit = {
-        // read variable from data section and push the value to the stack
+        // pop value from stack and store in variable
         out.append(
             s"putstatic ${className}/$id S\n"
         )
