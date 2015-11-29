@@ -113,7 +113,7 @@ object TestGeneratorJVM {
     def test(mainName: String, text: String): Boolean = {
         try {
             val prog = Parser.parse(text)
-            val outStr = GeneratorJVM.generate(prog, mainName).mkString
+            val outStr: String = (new Backend(mainName) with GeneratorJVM).generate(prog).mkString
             new PrintWriter("output/generatorJVM/"+mainName+".j") { write(outStr); close }
             true
         } catch {
