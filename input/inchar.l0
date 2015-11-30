@@ -1,0 +1,9 @@
+; reading some chars
+#c c
+# i
+0 -> i
+: LOOP
+    ?c -> c
+    " <" .s c .c "> " .s
+    i 1 + -> i
+i 10 if < LOOP
