@@ -21,13 +21,15 @@ trait Generator {
     def prelude(): Unit
     def end(): Unit
     def pushString(str: String): Unit
-    def pushShort(v: Short): Unit
-    def pushVar(id: String): Unit
-    def pushArr(id: String): Unit
-    def pushStr(id: String): Unit
-    def setVar(id: String): Unit
-    def setArr(id: String): Unit
-    def copyString(id: String): Unit
+    def pushInt(v: Short): Unit
+    def setInt(id: String): Unit
+    def getInt(id: String): Unit
+    def getArrayRef(id: String): Unit
+    def setIntArr(): Unit
+    def getIntArr(): Unit
+    def getStrRef(id: String): Unit
+    def getCharArr(): Unit
+    def copyString(): Unit
     def refSize(): Unit
     def printString(): Unit
     def printInteger(): Unit
@@ -47,6 +49,5 @@ trait Generator {
     def swap(): Unit
     def dup(): Unit
     def drop(): Unit
-    def dereferenceChar(): Unit
 
 }

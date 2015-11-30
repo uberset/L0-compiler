@@ -29,7 +29,7 @@ trait Generator8086 extends Generator {
         )
     }
 
-    override def pushShort(v: Short): Unit = {
+    override def pushInt(v: Short): Unit = {
         // ( -> value )
         out.append(
             s"""push ax
@@ -126,7 +126,7 @@ trait Generator8086 extends Generator {
         )
     }
 
-    override def pushVar(id: String): Unit = {
+    override def getInt(id: String): Unit = {
         // ( -> value )
         out.append(
             s"""push ax
@@ -135,7 +135,7 @@ trait Generator8086 extends Generator {
         )
     }
 
-    override def setVar(id: String): Unit = {
+    override def setInt(id: String): Unit = {
         // ( value -> )
         out.append(
             s"""mov [VAR_$id], ax
@@ -144,10 +144,11 @@ trait Generator8086 extends Generator {
         )
     }
 
-    override def copyString(id: String): Unit = {
-        // ( address -> )
+    override def copyString(): Unit = {
+        // ( src dst -> )
         out.append(
-            s"""mov bx, [STR_$id]
+            s"""mov bx, ax
+               |pop ax
                |call copystr
                |pop ax
                |""".stripMargin
@@ -163,32 +164,32 @@ trait Generator8086 extends Generator {
         )
     }
 
-    override def pushArr(id: String): Unit = {
-        // ( index -> value )
-        out.append(
-            s"""mov si, ax
-               |shl si, 1
-               |mov ax, [ARR_$id+si]
-               |""".stripMargin
-        )
-    }
-
-    override def pushStr(id: String): Unit = {
+    override def getArrayRef(id: String): Unit = {
         // ( -> address )
         out.append(
             s"""push ax
-               |mov ax, [STR_$id]
+               |mov ax, ARR_$id
                |""".stripMargin
         )
     }
 
-    override def setArr(id: String): Unit = {
-        // ( value index -> )
+    override def getStrRef(id: String): Unit = {
+        // ( -> address )
         out.append(
-            s"""mov si, ax
+            s"""push ax
+               |mov ax, STR_$id
+               |""".stripMargin
+        )
+    }
+
+    override def setIntArr(): Unit = {
+        // ( value index address -> )
+        out.append(
+            s"""mov bx, ax
+               |pop si
                |shl si, 1
                |pop ax
-               |mov [ARR_$id+si], ax
+               |mov [bx+si], ax
                |pop ax
                |""".stripMargin
         )
@@ -263,11 +264,21 @@ trait Generator8086 extends Generator {
               |""".stripMargin)
     }
 
-    override def dereferenceChar(): Unit = {
-        // ( address, index -> [address + index] )
+    override def getIntArr(): Unit = {
+        // ( address, index -> word[address + 2* index] )
         out.append(
-            """pop si
-              |mov bx, ax
+            """mov bx, ax
+              |pop si
+              |shl si, 1
+              |mov ax, [bx + si]
+              |""".stripMargin)
+    }
+
+    override def getCharArr(): Unit = {
+        // ( address, index -> byte[address + index] )
+        out.append(
+            """mov bx, ax
+              |pop si
               |mov al, [bx + si]
               |xor ah, ah
               |""".stripMargin)

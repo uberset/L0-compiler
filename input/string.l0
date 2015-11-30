@@ -1,6 +1,6 @@
 #s str 100             ; define a buffer for a string
-"Hello World" ->> str  ; copy a value into the string
+"Hello World" str ->>  ; copy a string into the buffer
 str .s .n              ; print the buffer
 str %% . .n            ; print the size
-str 1 !c . .n          ; get the second character and print it as integer
-str 1 !c .c            ; get the second character and print it as character
+str 1 @s . .n          ; get the second character and print it as integer
+str 1 @s .c            ; get the second character and print it as character

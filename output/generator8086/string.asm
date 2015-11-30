@@ -11,38 +11,41 @@ DATA_0: db "Hello World"
 section .text
 push ax
 mov ax, DATA_0
-mov bx, [STR_str]
+push ax
+mov ax, STR_str
+mov bx, ax
+pop ax
 call copystr
 pop ax
 push ax
-mov ax, [STR_str]
+mov ax, STR_str
 call prints
 pop ax
 call println
 push ax
-mov ax, [STR_str]
+mov ax, STR_str
 mov bx, ax
 mov ax, [bx-2]
 call printi
 pop ax
 call println
 push ax
-mov ax, [STR_str]
+mov ax, STR_str
 push ax
 mov ax ,1
-pop si
 mov bx, ax
+pop si
 mov al, [bx + si]
 xor ah, ah
 call printi
 pop ax
 call println
 push ax
-mov ax, [STR_str]
+mov ax, STR_str
 push ax
 mov ax ,1
-pop si
 mov bx, ax
+pop si
 mov al, [bx + si]
 xor ah, ah
 call printc

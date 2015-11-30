@@ -37,17 +37,17 @@ class Backend(programName : String) { this: Generator =>
 
     def declVar(id: String): Unit = {
         if(id.isEmpty) fail("Variable name expected.")
-        if(varNames.contains(id)) fail(s"Variable '$id' is already declared")
-        if(arrSizes.contains(id)) fail(s"Array '$id' is already declared")
-        if(strSizes.contains(id)) fail(s"String '$id' is already declared")
+        if(varNames.contains(id)) fail(s"Variable '$id' is already declared.")
+        if(arrSizes.contains(id)) fail(s"Array '$id' is already declared.")
+        if(strSizes.contains(id)) fail(s"String '$id' is already declared.")
         varNames += id
     }
 
     def declArr(id: String, size: String): Unit = {
         if(id.isEmpty) fail("Variable name expected.")
-        if(varNames.contains(id)) fail(s"Variable '$id' is already declared")
-        if(arrSizes.contains(id)) fail(s"Array '$id' is already declared")
-        if(strSizes.contains(id)) fail(s"String '$id' is already declared")
+        if(varNames.contains(id)) fail(s"Variable '$id' is already declared.")
+        if(arrSizes.contains(id)) fail(s"Array '$id' is already declared.")
+        if(strSizes.contains(id)) fail(s"String '$id' is already declared.")
         try {
             val i = size.toInt
             arrSizes.put(id, i)
@@ -58,9 +58,9 @@ class Backend(programName : String) { this: Generator =>
 
     def declStr(id: String, size: String): Unit = {
         if(id.isEmpty) fail("Variable name expected.")
-        if(varNames.contains(id)) fail(s"Variable '$id' is already declared")
-        if(arrSizes.contains(id)) fail(s"Array '$id' is already declared")
-        if(strSizes.contains(id)) fail(s"String '$id' is already declared")
+        if(varNames.contains(id)) fail(s"Variable '$id' is already declared.")
+        if(arrSizes.contains(id)) fail(s"Array '$id' is already declared.")
+        if(strSizes.contains(id)) fail(s"String '$id' is already declared.")
         try {
             val i = size.toInt
             strSizes.put(id, i)
@@ -72,7 +72,7 @@ class Backend(programName : String) { this: Generator =>
     def statement(stm: Statement): Unit = {
         stm match {
             case PushString(str) => pushString(str)
-            case PushShort(i) => pushShort(i.toShort)
+            case PushInt(i) => pushInt(i.toShort)
             case PrintString() => printString()
             case PrintInteger() => printInteger()
             case PrintChar() => printChar()
@@ -83,9 +83,12 @@ class Backend(programName : String) { this: Generator =>
             case DivI() => divI()
             case NegI() => negI()
             case InputInteger() => inputInteger()
-            case PushVar(id) => pushVarOrArray(id)
-            case SetVar(id) => setVarOrArray(id)
-            case CopyString(id) => copyString(id)
+            case GetVarOrRef(id) => getVarOrRef(id)
+            case SetVar(id) => setVar(id)
+            case SetIntArr() => setIntArr()
+            case GetIntArr() => getIntArr()
+            case GetCharArr() => getCharArr()
+            case CopyString() => copyString()
             case RefSize() => refSize()
             case Label(nr: String) => label(nr)
             case Goto(nr: String) => goto(nr)
@@ -95,38 +98,27 @@ class Backend(programName : String) { this: Generator =>
             case Swap() => swap()
             case Dup() => dup()
             case Drop() => drop()
-            case DereferenceChar() => dereferenceChar()
         }
     }
 
-    def pushVarOrArray(id: String): Unit = {
+    def getVarOrRef(id: String): Unit = {
         if(id.isEmpty) fail("Variable name expected.")
         if(varNames.contains(id))
-            pushVar(id)
+            getInt(id)
         else if(arrSizes.contains(id))
-            pushArr(id)
+            getArrayRef(id)
         else if(strSizes.contains(id))
-            pushStr(id)
+            getStrRef(id)
         else
-            fail(s"Variable '$id' is not declared")
+            fail(s"Variable '$id' is not declared.")
     }
 
-    def setVarOrArray(id: String) = {
+    def setVar(id: String): Unit = {
         if(id.isEmpty) fail("Variable name expected.")
         if(varNames.contains(id))
-            setVar(id)
-        else if(arrSizes.contains(id))
-            setArr(id)
+            setInt(id)
         else
-            fail(s"Variable '$id' is not declared")
-    }
-
-    def copyBuffer(id: String) = {
-        if(id.isEmpty) fail("Variable name expected.")
-        if(strSizes.contains(id))
-            copyString(id)
-        else
-            fail(s"String buffer '$id' is not declared")
+            fail(s"Variable '$id' is not declared.")
     }
 
     def fail(message: String): Null = throw new Exception(message)

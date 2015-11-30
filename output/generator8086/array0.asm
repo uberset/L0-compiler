@@ -7,50 +7,68 @@ push ax
 mov ax ,1
 push ax
 mov ax ,0
-mov si, ax
+push ax
+mov ax, ARR_a
+mov bx, ax
+pop si
 shl si, 1
 pop ax
-mov [ARR_a+si], ax
+mov [bx+si], ax
 pop ax
 push ax
 mov ax ,2
 push ax
 mov ax ,1
-mov si, ax
+push ax
+mov ax, ARR_a
+mov bx, ax
+pop si
 shl si, 1
 pop ax
-mov [ARR_a+si], ax
+mov [bx+si], ax
 pop ax
 push ax
 mov ax ,3
 push ax
 mov ax ,2
-mov si, ax
+push ax
+mov ax, ARR_a
+mov bx, ax
+pop si
 shl si, 1
 pop ax
-mov [ARR_a+si], ax
+mov [bx+si], ax
 pop ax
 push ax
 mov ax ,0
-mov si, ax
+push ax
+mov ax, ARR_a
+mov bx, ax
+pop si
 shl si, 1
-mov ax, [ARR_a+si]
+mov ax, [bx + si]
 call printi
 pop ax
 call println
 push ax
 mov ax ,1
-mov si, ax
+push ax
+mov ax, ARR_a
+mov bx, ax
+pop si
 shl si, 1
-mov ax, [ARR_a+si]
+mov ax, [bx + si]
 call printi
 pop ax
 call println
 push ax
 mov ax ,2
-mov si, ax
+push ax
+mov ax, ARR_a
+mov bx, ax
+pop si
 shl si, 1
-mov ax, [ARR_a+si]
+mov ax, [bx + si]
 call printi
 pop ax
 call println
