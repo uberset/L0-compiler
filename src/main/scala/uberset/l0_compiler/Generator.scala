@@ -14,7 +14,8 @@ trait Generator {
     val className: String
 
     val out = ListBuffer[String]()
-    var varNames = Set[String]()
+    var intNames = Set[String]()
+    var chrNames = Set[String]()
     var arrSizes = mutable.HashMap[String, Int]()
     var strSizes = mutable.HashMap[String, Int]()
 
@@ -24,6 +25,8 @@ trait Generator {
     def pushInt(v: Short): Unit
     def setInt(id: String): Unit
     def getInt(id: String): Unit
+    def setChr(id: String): Unit
+    def getChr(id: String): Unit
     def getArrayRef(id: String): Unit
     def setIntArr(): Unit
     def getIntArr(): Unit
@@ -41,6 +44,7 @@ trait Generator {
     def divI(): Unit
     def negI(): Unit
     def inputInteger(): Unit
+    def inputString(): Unit
     def label(nr: String): Unit
     def goto(nr: String): Unit
     def stmIf(rel: String, nr: String): Unit

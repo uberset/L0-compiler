@@ -29,23 +29,35 @@ class Backend(programName : String) { this: Generator =>
 
     def declaration(dcl: Declaration): Unit = {
         dcl match {
-            case DeclVar(id: String) => declVar(id)
+            case DeclInt(id: String) => declInt(id)
+            case DeclChr(id: String) => declChr(id)
             case DeclArr(id: String, size: String) => declArr(id, size)
             case DeclStr(id: String, size: String) => declStr(id, size)
         }
     }
 
-    def declVar(id: String): Unit = {
+    def declInt(id: String): Unit = {
         if(id.isEmpty) fail("Variable name expected.")
-        if(varNames.contains(id)) fail(s"Variable '$id' is already declared.")
+        if(intNames.contains(id)) fail(s"Integer '$id' is already declared.")
+        if(chrNames.contains(id)) fail(s"Character '$id' is already declared.")
         if(arrSizes.contains(id)) fail(s"Array '$id' is already declared.")
         if(strSizes.contains(id)) fail(s"String '$id' is already declared.")
-        varNames += id
+        intNames += id
+    }
+
+    def declChr(id: String): Unit = {
+        if(id.isEmpty) fail("Variable name expected.")
+        if(intNames.contains(id)) fail(s"Integer '$id' is already declared.")
+        if(chrNames.contains(id)) fail(s"Character '$id' is already declared.")
+        if(arrSizes.contains(id)) fail(s"Array '$id' is already declared.")
+        if(strSizes.contains(id)) fail(s"String '$id' is already declared.")
+        chrNames += id
     }
 
     def declArr(id: String, size: String): Unit = {
         if(id.isEmpty) fail("Variable name expected.")
-        if(varNames.contains(id)) fail(s"Variable '$id' is already declared.")
+        if(intNames.contains(id)) fail(s"Integer '$id' is already declared.")
+        if(chrNames.contains(id)) fail(s"Character '$id' is already declared.")
         if(arrSizes.contains(id)) fail(s"Array '$id' is already declared.")
         if(strSizes.contains(id)) fail(s"String '$id' is already declared.")
         try {
@@ -58,7 +70,8 @@ class Backend(programName : String) { this: Generator =>
 
     def declStr(id: String, size: String): Unit = {
         if(id.isEmpty) fail("Variable name expected.")
-        if(varNames.contains(id)) fail(s"Variable '$id' is already declared.")
+        if(intNames.contains(id)) fail(s"Integer '$id' is already declared.")
+        if(chrNames.contains(id)) fail(s"Character '$id' is already declared.")
         if(arrSizes.contains(id)) fail(s"Array '$id' is already declared.")
         if(strSizes.contains(id)) fail(s"String '$id' is already declared.")
         try {
@@ -83,6 +96,7 @@ class Backend(programName : String) { this: Generator =>
             case DivI() => divI()
             case NegI() => negI()
             case InputInteger() => inputInteger()
+            case InputString() => inputString()
             case GetVarOrRef(id) => getVarOrRef(id)
             case SetVar(id) => setVar(id)
             case SetIntArr() => setIntArr()
@@ -103,22 +117,32 @@ class Backend(programName : String) { this: Generator =>
 
     def getVarOrRef(id: String): Unit = {
         if(id.isEmpty) fail("Variable name expected.")
-        if(varNames.contains(id))
+        if(intNames.contains(id))
             getInt(id)
+        else if(chrNames.contains(id))
+            getChr(id)
         else if(arrSizes.contains(id))
             getArrayRef(id)
         else if(strSizes.contains(id))
             getStrRef(id)
-        else
+        else {
+            println("intnames: "+intNames)
+            println("chrNames: "+chrNames)
             fail(s"Variable '$id' is not declared.")
+        }
     }
 
     def setVar(id: String): Unit = {
         if(id.isEmpty) fail("Variable name expected.")
-        if(varNames.contains(id))
+        if(intNames.contains(id))
             setInt(id)
-        else
+        else if(chrNames.contains(id))
+            setChr(id)
+        else {
+            println("intnames: "+intNames)
+            println("chrNames: "+chrNames)
             fail(s"Variable '$id' is not declared.")
+        }
     }
 
     def fail(message: String): Null = throw new Exception(message)

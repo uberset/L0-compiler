@@ -45,7 +45,8 @@ object TestGenerator8086 {
             test("alabel"),
             test("fun1"),
             test("recur"),
-            test("string")
+            test("string"),
+            test("instr")
         )
         val tests = results.size
         val passed = results.filter(identity).size

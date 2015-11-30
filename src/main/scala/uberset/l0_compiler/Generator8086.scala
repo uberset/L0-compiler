@@ -118,10 +118,20 @@ trait Generator8086 extends Generator {
     }
 
     override def inputInteger(): Unit = {
-        // ( -> value)
+        // ( -> value )
         out.append(
             """push ax
               |call inputi
+              |""".stripMargin
+        )
+    }
+
+    override def inputString(): Unit = {
+        // ( -> address )
+        out.append(
+            """push ax
+              |call inputs
+              |call println
               |""".stripMargin
         )
     }
@@ -130,7 +140,7 @@ trait Generator8086 extends Generator {
         // ( -> value )
         out.append(
             s"""push ax
-               |mov ax, [VAR_$id]
+               |mov ax, [INT_$id]
                |""".stripMargin
         )
     }
@@ -138,7 +148,26 @@ trait Generator8086 extends Generator {
     override def setInt(id: String): Unit = {
         // ( value -> )
         out.append(
-            s"""mov [VAR_$id], ax
+            s"""mov [INT_$id], ax
+               |pop ax
+               |""".stripMargin
+        )
+    }
+
+    override def getChr(id: String): Unit = {
+        // ( -> value )
+        out.append(
+            s"""push ax
+               |mov al, [CHR_$id]
+               |xor ah, ah
+               |""".stripMargin
+        )
+    }
+
+    override def setChr(id: String): Unit = {
+        // ( value -> )
+        out.append(
+            s"""mov [CHR_$id], al
                |pop ax
                |""".stripMargin
         )
@@ -213,8 +242,8 @@ trait Generator8086 extends Generator {
         // ( a b -> )
         val opcode = rel match {
             case "=" => "je"
-            case "<" => "jlt"
-            case ">" => "jgt"
+            case "<" => "jl"
+            case ">" => "jg"
             case "<=" => "jle"
             case ">=" => "jge"
             case "<>" => "jne"
@@ -285,13 +314,21 @@ trait Generator8086 extends Generator {
     }
 
     private def varsAndArrays(): Unit = {
-        if(!varNames.isEmpty || !arrSizes.isEmpty || !strSizes.isEmpty) {
-            // define all variables in the data section
+        if(!intNames.isEmpty || !arrSizes.isEmpty || !strSizes.isEmpty) {
             out.append("section .data\n")
-            for (id <- varNames) {
-                val lbl = "VAR_" + id + ":"
+            // define all integers in the data section
+            for (id <- intNames) {
+                val lbl = "INT_" + id + ":"
                 out.append(
                     s"""$lbl dw 0
+                       |""".stripMargin
+                )
+            }
+            // define all characters in the data section
+            for (id <- chrNames) {
+                val lbl = "CHR_" + id + ":"
+                out.append(
+                    s"""$lbl db 0
                        |""".stripMargin
                 )
             }
@@ -309,7 +346,7 @@ trait Generator8086 extends Generator {
                 out.append(
                     s"""       dw    ${size}
                        |       dw    0
-                       |$lbl   times ${size} dw 0
+                       |$lbl   times ${size} db 0
                        |""".stripMargin
                 )
             }
