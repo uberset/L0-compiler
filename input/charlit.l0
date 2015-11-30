@@ -1,0 +1,3 @@
+; print some char literals
+'d 'l 'r 'o 'W 32 'o 'l dup 'e 'H
+.c .c .c .c .c .c .c .c .c .c .c

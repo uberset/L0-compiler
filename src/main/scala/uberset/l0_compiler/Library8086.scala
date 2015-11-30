@@ -17,11 +17,22 @@ object Library8086 {
             println,
             printi,
             int2decimal,
+            inputc,
             inputs,
             inputi,
             copystr
         )
     }
+
+    val inputc =
+"""
+inputc:	; ()->(AX)
+        ; get a char from stdout
+        mov ah, 1		; input char from stdin (ah: 01 -> al)
+        int 0x21		; DOS
+        xor ah, ah
+.end:	ret
+"""
 
     val printc =
 """

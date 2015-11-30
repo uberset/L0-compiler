@@ -20,6 +20,7 @@ case class Goto(id: String) extends Statement
 case class If(rel: String, nr: String) extends Statement
 case class Gosub(id: String) extends Statement
 case class PushString(string: String) extends Statement
+case class PushCharacter(char: Char) extends Statement
 case class PushInt(int: Int) extends Statement
 case class GetVarOrRef(id: String) extends Statement
 case class PrintString() extends Statement
@@ -28,6 +29,7 @@ case class PrintInteger() extends Statement
 case class PrintNl() extends Statement
 case class InputInteger() extends Statement
 case class InputString() extends Statement
+case class InputCharacter() extends Statement
 case class AddInteger() extends Statement
 case class SubI() extends Statement
 case class MulI() extends Statement

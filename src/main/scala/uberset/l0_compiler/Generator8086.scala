@@ -136,6 +136,15 @@ trait Generator8086 extends Generator {
         )
     }
 
+    override def inputCharacter(): Unit = {
+        // ( -> value )
+        out.append(
+            """push ax
+              |call inputc
+              |""".stripMargin
+        )
+    }
+
     override def getInt(id: String): Unit = {
         // ( -> value )
         out.append(

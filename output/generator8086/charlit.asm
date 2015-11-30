@@ -1,30 +1,47 @@
-section .data
-INT_x: dw 0
-section .text
 org 100h
 mov ax, -1
 push ax
-mov ax ,1
-neg ax
-mov [INT_x], ax
-pop ax
-section .data
-    dw 6
-DATA_0: db "-1/-1="
-section .text
+mov ax ,100
 push ax
-mov ax, DATA_0
-call prints
-pop ax
+mov ax ,108
 push ax
-mov ax, [INT_x]
+mov ax ,114
 push ax
-mov ax, [INT_x]
-mov bx, ax
+mov ax ,111
+push ax
+mov ax ,87
+push ax
+mov ax ,32
+push ax
+mov ax ,111
+push ax
+mov ax ,108
+push ax
+push ax
+mov ax ,101
+push ax
+mov ax ,72
+call printc
 pop ax
-cwd
-idiv bx
-call printi
+call printc
+pop ax
+call printc
+pop ax
+call printc
+pop ax
+call printc
+pop ax
+call printc
+pop ax
+call printc
+pop ax
+call printc
+pop ax
+call printc
+pop ax
+call printc
+pop ax
+call printc
 pop ax
 mov ax,0x4c00
 int 0x21

@@ -89,6 +89,13 @@ section .data
 .endbuf:
 section .text
 
+inputc:	; ()->(AX)
+        ; get a char from stdout
+        mov ah, 1		; input char from stdin (ah: 01 -> al)
+        int 0x21		; DOS
+        xor ah, ah
+.end:	ret
+
 inputs: ; ()->(AX)
         ; get string from stdin
         ; user can edit text

@@ -27,6 +27,7 @@ object Parser {
             val RString = "\"[^\"]*\"".r
             val RInteger = "[0-9]+".r
             val RIdentifier = "[a-zA-Z][a-zA-Z0-9]*".r
+            val RCharacter = "'.".r
             word match {
                 case "" => return Program(decl, buf)
                 case ";" => lineEnd(in)
@@ -44,17 +45,19 @@ object Parser {
                 case "." => buf.append(PrintInteger())
                 case "?" => buf.append(InputInteger())
                 case "?s" => buf.append(InputString())
+                case "?c" => buf.append(InputCharacter())
                 case "+" => buf.append(AddInteger())
                 case "-" => buf.append(SubI())
                 case "*" => buf.append(MulI())
                 case "/" => buf.append(DivI())
                 case "~" => buf.append(NegI())
-                case "if" => buf.append(If(getWord(in), getWord(in)))
                 case ".n" => buf.append(PrintNl())
                 case ".s" => buf.append(PrintString())
                 case ".c" => buf.append(PrintChar())
                 case RString() => buf.append(PushString(word.substring(1, word.length-1)))
+                case RCharacter() => buf.append(PushCharacter(word.charAt(1)))
                 case RInteger() => buf.append(PushInt(word.toInt))
+                case "if" => buf.append(If(getWord(in), getWord(in)))
                 case "goto" => buf.append(Goto(getWord(in)))
                 case "gosub" => buf.append(Gosub(getWord(in)))
                 case "return" => buf.append(Return())

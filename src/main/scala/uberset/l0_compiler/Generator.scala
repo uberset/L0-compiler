@@ -45,6 +45,7 @@ trait Generator {
     def negI(): Unit
     def inputInteger(): Unit
     def inputString(): Unit
+    def inputCharacter(): Unit
     def label(nr: String): Unit
     def goto(nr: String): Unit
     def stmIf(rel: String, nr: String): Unit

@@ -85,6 +85,7 @@ class Backend(programName : String) { this: Generator =>
     def statement(stm: Statement): Unit = {
         stm match {
             case PushString(str) => pushString(str)
+            case PushCharacter(chr) => pushInt(chr.toShort)
             case PushInt(i) => pushInt(i.toShort)
             case PrintString() => printString()
             case PrintInteger() => printInteger()
@@ -97,6 +98,7 @@ class Backend(programName : String) { this: Generator =>
             case NegI() => negI()
             case InputInteger() => inputInteger()
             case InputString() => inputString()
+            case InputCharacter() => inputCharacter()
             case GetVarOrRef(id) => getVarOrRef(id)
             case SetVar(id) => setVar(id)
             case SetIntArr() => setIntArr()
