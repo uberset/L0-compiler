@@ -1,17 +1,17 @@
 section .data
-VAR_i: dw 0
+INT_i: dw 0
 section .text
 org 100h
 mov ax, -1
 push ax
 mov ax ,1
-mov [VAR_i], ax
+mov [INT_i], ax
 pop ax
 LBL_10:
 push ax
-mov ax, [VAR_i]
+mov ax, [INT_i]
 push ax
-mov ax, [VAR_i]
+mov ax, [INT_i]
 mov bx, ax
 pop ax
 imul ax, bx
@@ -19,16 +19,16 @@ call printi
 pop ax
 call println
 push ax
-mov ax, [VAR_i]
+mov ax, [INT_i]
 push ax
 mov ax ,1
 mov bx, ax
 pop ax
 add ax, bx
-mov [VAR_i], ax
+mov [INT_i], ax
 pop ax
 push ax
-mov ax, [VAR_i]
+mov ax, [INT_i]
 push ax
 mov ax ,5
 pop bx
@@ -122,18 +122,20 @@ section .text
 
 inputs: ; ()->(AX)
         ; get string from stdin
-        ; max size len + 1 (CR)
-        ; return startaddress
         ; user can edit text
+        ; max size: len + 1 (CR)
+        ; return startaddress
+        ; length (16 bit) at startaddress-2
         mov bx, .buff
+        mov al, .len
+        add al, 1
+        mov [bx], al    ; maximum length (8 bit)
         mov dx, bx
         mov ah, 0ah
         int 21h
-		mov al, [bx+1]	; actual length
-		add al, 2		; offset
+		mov al, [bx+1]	; actual length (8 bit)
 		xor ah, ah		; 0
-		add bx, ax
-		mov [bx], byte 0; terminate string
+		mov [bx], ax	; actual length (16 bit)
         mov ax, .buff+2	; result
         ret
 

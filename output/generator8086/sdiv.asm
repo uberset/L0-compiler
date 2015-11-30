@@ -1,12 +1,12 @@
 section .data
-VAR_x: dw 0
+INT_x: dw 0
 section .text
 org 100h
 mov ax, -1
 push ax
 mov ax ,1
 neg ax
-mov [VAR_x], ax
+mov [INT_x], ax
 pop ax
 section .data
     dw 6
@@ -17,9 +17,9 @@ mov ax, DATA_0
 call prints
 pop ax
 push ax
-mov ax, [VAR_x]
+mov ax, [INT_x]
 push ax
-mov ax, [VAR_x]
+mov ax, [INT_x]
 mov bx, ax
 pop ax
 cwd
@@ -113,18 +113,20 @@ section .text
 
 inputs: ; ()->(AX)
         ; get string from stdin
-        ; max size len + 1 (CR)
-        ; return startaddress
         ; user can edit text
+        ; max size: len + 1 (CR)
+        ; return startaddress
+        ; length (16 bit) at startaddress-2
         mov bx, .buff
+        mov al, .len
+        add al, 1
+        mov [bx], al    ; maximum length (8 bit)
         mov dx, bx
         mov ah, 0ah
         int 21h
-		mov al, [bx+1]	; actual length
-		add al, 2		; offset
+		mov al, [bx+1]	; actual length (8 bit)
 		xor ah, ah		; 0
-		add bx, ax
-		mov [bx], byte 0; terminate string
+		mov [bx], ax	; actual length (16 bit)
         mov ax, .buff+2	; result
         ret
 

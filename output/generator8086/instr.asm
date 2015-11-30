@@ -1,22 +1,80 @@
+section .data
+INT_len: dw 0
+INT_i: dw 0
+CHR_c: db 0
+       dw    100
+       dw    0
+STR_str:   times 100 db 0
+section .text
 org 100h
 mov ax, -1
+push ax
+call inputs
+call println
+push ax
+mov ax, STR_str
+mov bx, ax
+pop ax
+call copystr
+pop ax
+push ax
+mov ax, STR_str
+mov bx, ax
+mov ax, [bx-2]
+mov [INT_len], ax
+pop ax
 section .data
-    dw 4
-DATA_0: db "2+2="
+    dw 5
+DATA_0: db "len: "
 section .text
 push ax
 mov ax, DATA_0
 call prints
 pop ax
 push ax
-mov ax ,2
+mov ax, [INT_len]
+call printi
+pop ax
+call println
 push ax
+mov ax ,0
+mov [INT_i], ax
+pop ax
+LBL_L:
+push ax
+mov ax, STR_str
+push ax
+mov ax, [INT_i]
+mov bx, ax
+pop si
+mov al, [bx + si]
+xor ah, ah
+mov [CHR_c], al
+pop ax
+push ax
+mov al, [CHR_c]
+xor ah, ah
+call printc
+pop ax
+call println
+push ax
+mov ax, [INT_i]
+push ax
+mov ax ,1
 mov bx, ax
 pop ax
 add ax, bx
-call printi
+mov [INT_i], ax
 pop ax
-mov ax,0x4c00
+push ax
+mov ax, [INT_i]
+push ax
+mov ax, [INT_len]
+pop bx
+cmp bx, ax
+pop ax
+jl LBL_L
+             mov ax,0x4c00
 int 0x21
 
 printc:	; (AL)->()

@@ -1,0 +1,14 @@
+; read a string and write the length and the the chars
+#s str 100
+?s str ->>
+# len
+str %% -> len
+"len: " .s len . .n
+# i
+0 -> i
+#c c
+: L
+    str i @s -> c
+    c .c .n
+    i 1 + -> i
+i len if < L
