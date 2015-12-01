@@ -9,14 +9,14 @@ mov ax, DATA_0
 call prints
 pop ax
 push ax
-mov ax ,1
+mov ax,1
 call LBL_successor
 call printi
 pop ax
 jmp LBL_end
 LBL_successor:
 push ax
-mov ax ,1
+mov ax,1
 mov bx, ax
 pop ax
 add ax, bx
@@ -58,7 +58,7 @@ println:; ()->()
         pop ax  ; restore
         ret
 .size:  dw 2
-.line:	db 0x0A, 0x0D
+.line:	db 0x0D, 0x0A
 
 printi: ; (AX)->()
         ; print a signed integer (16 bit) to stdout
@@ -109,10 +109,21 @@ section .text
 
 inputc:	; ()->(AX)
         ; get a char from stdout
-        mov ah, 1		; input char from stdin (ah: 01 -> al)
+        mov ah, 0x3F	; read file
+        mov bx, 0       ; filehandle stdin
+        mov cx, 1       ; 1 byte
+        mov dx, .buf    ; buffer
         int 0x21		; DOS
-        xor ah, ah
+        jc  .fail       ; error
+        cmp ax, 0
+        je  .fail       ; EOF
+        mov al, [.buf]
+        xor ah, ah      ; result one byte
 .end:	ret
+.fail:  mov ax, -1
+        ret
+
+.buf    db 0
 
 inputs: ; ()->(AX)
         ; get string from stdin
@@ -203,4 +214,28 @@ copystr:; (AX, BX)->()
         cld             ; direction: inc
         rep
         movsb           ; loop copy
+        sub bx, 2
+        mov [bx], cx    ; size
         ret
+
+compstr:; (AX, BX)->(FLAGS)
+        ; compare two strings from two references
+        ; AX: first
+        ; BX: second
+        ; check length
+        mov si, ax
+        mov di, bx
+        mov ax, [si-2]  ; first size
+        mov bx, [di-2]  ; second size
+        mov cx, ax      ; loop size
+        cmp cx, bx
+        jbe .size_ok
+        mov cx, bx      ; minimum length
+.size_ok:
+        cld             ; direction: inc
+        repe
+        cmpsb           ; loop compare
+        jne .end
+        ; substrings are equal, compare size
+        cmp ax, bx
+.end:   ret
