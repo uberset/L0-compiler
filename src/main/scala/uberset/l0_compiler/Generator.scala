@@ -29,10 +29,12 @@ trait Generator {
     def getChr(id: String): Unit
     def getArrayRef(id: String): Unit
     def setIntArr(): Unit
+    def setChrArr(): Unit
     def getIntArr(): Unit
     def getStrRef(id: String): Unit
     def getCharArr(): Unit
     def copyString(): Unit
+    def compareString(): Unit
     def refSize(): Unit
     def printString(): Unit
     def printInteger(): Unit
@@ -48,7 +50,8 @@ trait Generator {
     def inputCharacter(): Unit
     def label(nr: String): Unit
     def goto(nr: String): Unit
-    def stmIf(rel: String, nr: String): Unit
+    def compare(): Unit
+    def branch(rel: String, lbl: String): Unit
     def gosub(nr: String): Unit
     def stmReturn(): Unit
     def swap(): Unit

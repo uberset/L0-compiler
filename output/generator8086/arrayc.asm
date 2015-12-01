@@ -1,63 +1,86 @@
-/*
-  Author: uberset
-  Date: 2015-11-28
-  Licence: GPL v2
-*/
+section .data
+       dw    3
+       dw    0
+STR_arr:   times 3 db 0
+section .text
+org 100h
+mov ax, -1
+push ax
+mov ax,65
+push ax
+mov ax,0
+push ax
+mov ax, STR_arr
+mov bx, ax
+pop si
+pop ax
+mov [bx+si], al
+pop ax
+push ax
+mov ax,66
+push ax
+mov ax,1
+push ax
+mov ax, STR_arr
+mov bx, ax
+pop si
+pop ax
+mov [bx+si], al
+pop ax
+push ax
+mov ax,67
+push ax
+mov ax,2
+push ax
+mov ax, STR_arr
+mov bx, ax
+pop si
+pop ax
+mov [bx+si], al
+pop ax
+push ax
+mov ax,0
+push ax
+mov ax, STR_arr
+mov bx, ax
+pop si
+mov al, [bx + si]
+xor ah, ah
+call printc
+pop ax
+call println
+push ax
+mov ax,1
+push ax
+mov ax, STR_arr
+mov bx, ax
+pop si
+mov al, [bx + si]
+xor ah, ah
+call printc
+pop ax
+call println
+push ax
+mov ax,2
+push ax
+mov ax, STR_arr
+mov bx, ax
+pop si
+mov al, [bx + si]
+xor ah, ah
+call printc
+pop ax
+call println
+mov ax,0x4c00
+int 0x21
 
-package uberset.l0_compiler
-
-import scala.collection.mutable.ListBuffer
-
-object Library8086 {
-
-    def library(out: ListBuffer[String]): Unit = {
-        out.append(
-            printc,
-            prints,
-            println,
-            printi,
-            int2decimal,
-            inputc,
-            inputs,
-            inputi,
-            copystr,
-            compstr
-        )
-    }
-
-    val inputc =
-"""
-inputc:	; ()->(AX)
-        ; get a char from stdout
-        mov ah, 0x3F	; read file
-        mov bx, 0       ; filehandle stdin
-        mov cx, 1       ; 1 byte
-        mov dx, .buf    ; buffer
-        int 0x21		; DOS
-        jc  .fail       ; error
-        cmp ax, 0
-        je  .fail       ; EOF
-        mov al, [.buf]
-        xor ah, ah      ; result one byte
-.end:	ret
-.fail:  mov ax, -1
-        ret
-
-.buf    db 0
-"""
-
-    val printc =
-"""
 printc:	; (AL)->()
         ; print a char to stdout
         mov dl, al      ; load character
         mov ah, 2		; output char to stdout (ah: 02, dl: char)
         int 0x21		; DOS
 .end:	ret
-"""
 
-    val prints =
-"""
 prints:	; (AX)->()
         ; print a string to stdout
         ; string start address in AX
@@ -74,10 +97,7 @@ prints:	; (AX)->()
         inc bx
         loop .loop
 .end:	ret
-"""
 
-    val println =
-"""
 println:; ()->()
         ; put CR LF to stdout
 
@@ -88,19 +108,13 @@ println:; ()->()
         ret
 .size:  dw 2
 .line:	db 0x0D, 0x0A
-"""
 
-    val printi =
-"""
 printi: ; (AX)->()
         ; print a signed integer (16 bit) to stdout
         call int2decimal
         call prints
         ret
-"""
 
-    val int2decimal =
-"""
 int2decimal:
         ; (AX)->(AX)
         ; convert a signed integer (16 bit) to a buffer
@@ -141,10 +155,25 @@ section .data
 .buffer	db		"-", "12345"
 .endbuf:
 section .text
-"""
 
-    val inputs =
-"""
+inputc:	; ()->(AX)
+        ; get a char from stdout
+        mov ah, 0x3F	; read file
+        mov bx, 0       ; filehandle stdin
+        mov cx, 1       ; 1 byte
+        mov dx, .buf    ; buffer
+        int 0x21		; DOS
+        jc  .fail       ; error
+        cmp ax, 0
+        je  .fail       ; EOF
+        mov al, [.buf]
+        xor ah, ah      ; result one byte
+.end:	ret
+.fail:  mov ax, -1
+        ret
+
+.buf    db 0
+
 inputs: ; ()->(AX)
         ; get string from stdin
         ; user can edit text
@@ -172,10 +201,7 @@ times .len db 0		; the string
         db 0		; CR (or 0)
 section .text
 
-"""
 
-    val inputi =
-"""
 inputi: ; ()->(AX)
         call inputs
         call s2int
@@ -219,10 +245,7 @@ s2int:  ; (AX)->(AX)
         jge .end
         neg ax
 .end:	ret
-"""
 
-    val copystr =
-"""
 copystr:; (AX, BX)->()
         ; copy from a string reference to a string buffer
         ; AX: source
@@ -243,10 +266,7 @@ copystr:; (AX, BX)->()
         sub bx, 2
         mov [bx], cx    ; size
         ret
-"""
 
-    val compstr =
-"""
 compstr:; (AX, BX)->(FLAGS)
         ; compare two strings from two references
         ; AX: first
@@ -268,5 +288,3 @@ compstr:; (AX, BX)->(FLAGS)
         ; substrings are equal, compare size
         cmp ax, bx
 .end:   ret
-"""
-}

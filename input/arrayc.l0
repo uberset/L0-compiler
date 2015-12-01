@@ -1,0 +1,7 @@
+#s arr 3
+'A 0 arr !s
+'B 1 arr !s
+'C 2 arr !s
+0 arr @s .c .n
+1 arr @s .c .n
+2 arr @s .c .n

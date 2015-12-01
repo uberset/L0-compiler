@@ -33,7 +33,7 @@ trait Generator8086 extends Generator {
         // ( -> value )
         out.append(
             s"""push ax
-               |mov ax ,$v
+               |mov ax,$v
                |""".stripMargin
         )
     }
@@ -193,6 +193,17 @@ trait Generator8086 extends Generator {
         )
     }
 
+    override def compareString(): Unit = {
+        // ( src dst -> [flags] )
+        out.append(
+            s"""mov bx, ax
+               |pop ax
+               |call compstr
+               |pop ax
+               |""".stripMargin
+        )
+    }
+
     override def refSize(): Unit = {
         // ( address -> size )
         out.append(
@@ -222,12 +233,26 @@ trait Generator8086 extends Generator {
 
     override def setIntArr(): Unit = {
         // ( value index address -> )
+        // store 2 bytes
         out.append(
             s"""mov bx, ax
                |pop si
                |shl si, 1
                |pop ax
                |mov [bx+si], ax
+               |pop ax
+               |""".stripMargin
+        )
+    }
+
+    override def setChrArr(): Unit = {
+        // ( value index address -> )
+        // store 1 byte
+        out.append(
+            s"""mov bx, ax
+               |pop si
+               |pop ax
+               |mov [bx+si], al
                |pop ax
                |""".stripMargin
         )
@@ -247,8 +272,19 @@ trait Generator8086 extends Generator {
         out.append(s"jmp $lbl\n")
     }
 
-    override def stmIf(rel: String, nr: String): Unit = {
-        // ( a b -> )
+    override def compare(): Unit = {
+        // ( a b -> [flags])
+
+        out.append(
+            s"""pop bx
+               |cmp bx, ax
+               |pop ax
+               |""".stripMargin
+        )
+    }
+
+    override def branch(rel: String, lbl: String): Unit = {
+        // ( [flags] -> )
         val opcode = rel match {
             case "=" => "je"
             case "<" => "jl"
@@ -257,14 +293,11 @@ trait Generator8086 extends Generator {
             case ">=" => "jge"
             case "<>" => "jne"
         }
-        val lbl = labelString(nr)
+        val lb = labelString(lbl)
 
         out.append(
-            s"""pop bx
-               |cmp bx, ax
-               |pop ax
-               |$opcode $lbl
-             """.stripMargin
+            s"""$opcode $lb
+               |""".stripMargin
         )
     }
 

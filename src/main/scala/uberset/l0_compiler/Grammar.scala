@@ -11,13 +11,16 @@ case class Program(declarations: Seq[Declaration], statements: Seq[Statement])
 abstract sealed class Statement
 case class SetVar(id: String) extends Statement
 case class SetIntArr() extends Statement
+case class SetChrArr() extends Statement
 case class GetIntArr() extends Statement
 case class GetCharArr() extends Statement
 case class CopyString() extends Statement
+case class CompareString() extends Statement
 case class RefSize() extends Statement
 case class Label(id: String) extends Statement
 case class Goto(id: String) extends Statement
-case class If(rel: String, nr: String) extends Statement
+case class Compare() extends Statement
+case class Branch(rel: String, lbl: String) extends Statement
 case class Gosub(id: String) extends Statement
 case class PushString(string: String) extends Statement
 case class PushCharacter(char: Char) extends Statement
