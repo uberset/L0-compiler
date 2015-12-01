@@ -1,0 +1,36 @@
+goto main
+
+: test
+"compare '" .s f .s "' with '" .s s .s "'" .s .n
+"= " .s f s ifs =  then1 " no" goto end1 : then1 " yes" : end1 .s .n
+"< " .s f s ifs <  then2 " no" goto end2 : then2 " yes" : end2 .s .n
+"> " .s f s ifs >  then3 " no" goto end3 : then3 " yes" : end3 .s .n
+"<=" .s f s ifs <= then4 " no" goto end4 : then4 " yes" : end4 .s .n
+">=" .s f s ifs >= then5 " no" goto end5 : then5 " yes" : end5 .s .n
+"<>" .s f s ifs <> then6 " no" goto end6 : then6 " yes" : end6 .s .n
+return
+
+: main
+; compare strings
+#s f 10
+#s s 10
+
+"a" f ->>
+"a" s ->> gosub test
+"b" s ->> gosub test
+"c" f ->> gosub test
+
+"xa" f ->>
+"xa" s ->> gosub test
+"xb" s ->> gosub test
+"xc" f ->> gosub test
+
+"ax" f ->>
+"a" s ->> gosub test
+"b" s ->> gosub test
+"cx" f ->> gosub test
+
+"a" f ->>
+"ax" s ->> gosub test
+"bx" s ->> gosub test
+"c" f ->> gosub test
