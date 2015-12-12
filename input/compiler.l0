@@ -1,0 +1,623 @@
+; a compiler that compiles all L0 examples and itself
+
+goto main
+
+: prelude
+    "org 100h" .s .n
+    "mov ax, -1" .s .n
+return
+
+: end
+    "mov ax,0x4c00" .s .n
+    "int 0x21" .s .n
+return
+
+: getChar
+# nextChar
+; read one character from input
+; -1 = EOF
+    ?c -> nextChar
+return
+
+: skipSpaces
+; skip all spaces
+    nextChar  0 if < skip.e ; EOF
+    nextChar 32 if > skip.e ; above space
+    gosub getChar
+    goto skipSpaces     ; tail recursion LOL
+: skip.e
+return
+
+: skipLine
+; skip the rest of the line
+    nextChar  0 if < skl.e  ; EOF
+    nextChar 10 if = skl.e  ; LF
+    nextChar 13 if = skl.e  ; CR
+    gosub getChar
+    goto skipLine   ; recur
+: skl.e
+return
+
+
+: getWord
+#s lastWord 100
+; read one word from input
+; "" = EOF
+; handle comments
+# wordI
+# isString
+    gosub skipSpaces
+    0 -> wordI
+    0 -> isString
+    nextChar '; if = word.c ; comment (do not care if a whitespace is after ;)
+    nextChar '" if = word.s ; string
+    : word.l
+        nextChar 32 if <= word.e  ; EOF or whitespace
+        nextChar wordI lastWord !s
+        wordI 1 + -> wordI
+        wordI 100 if >= word.e    ; this word is very long !!
+        gosub getChar
+    goto word.l
+: word.s    ; string (read until " or LF or CR or EOF)
+            ; skip the last "
+            ; ignore, if string is not terminated by "
+    nextChar wordI lastWord !s ; store char
+    wordI 1 + -> wordI
+    wordI 100 if >= word.e    ; this word is very long !!
+    gosub getChar
+    nextChar '" if = word.get ; done
+    nextChar 10 if = word.se  ; LF done
+    nextChar 13 if = word.se  ; CR done
+    nextChar 1 ~ if = word.se ; EOF done
+    goto word.s
+: word.get  ; get "
+    gosub getChar
+: word.se
+    1 -> isString
+    goto word.e
+: word.c    ; comment
+    nextChar wordI lastWord !s
+    wordI 1 + -> wordI
+    gosub skipLine
+: word.e    ; end
+    ; store size (hack)
+    wordI 0 lastWord 2 - !
+return
+
+: isInteger
+; checks if word has only digits
+; saves 1 (true) or 0 (false) in var isInteger
+# isInteger
+# i
+    0 -> isInteger
+    0 -> i
+    : isi.l
+        i lastWord @s '0 if < isi.e
+        i lastWord @s '9 if > isi.e
+        i 1 + -> i
+    i wordI if < isi.l
+    1 -> isInteger
+: isi.e
+return
+
+: isName
+; checks if word matches [a-zA-Z][a-zA-Z0-9]*
+; saves 1 (true) or 0 (false) in var isInteger
+# isName
+    0 -> isName
+    0 -> i
+    goto isn.l  ; no digit allowed for first char
+    : isn.d ; test digit
+        i lastWord @s '0 if < isn.l
+        i lastWord @s '9 if > isn.l
+        goto isn.ok
+    : isn.l ; test lowercase letter
+        i lastWord @s 'a if < isn.u
+        i lastWord @s 'z if > isn.u
+        goto isn.ok
+    : isn.u ; test uppercase letter
+        i lastWord @s 'A if < isn.e
+        i lastWord @s 'Z if > isn.e
+    : isn.ok
+        i 1 + -> i
+    i wordI if < isn.d  ; test next char
+    1 -> isName
+: isn.e
+return
+
+
+
+#s varTypes 100     ; types of vars
+; 0 not declared
+; 1 int
+; 2 char
+; 11 int array
+; 12 string
+
+: newVar
+; int vars
+#s varNames 1200 ; array for names
+## varX 100      ; indexes to varNames
+# varXLen        ; length of varX
+; adds the lastWord to varNames
+; does not check, if name is already in varNames
+; append size, size, string to varNames
+
+; "1 DEBUG INT VARS: " .s varNames .s .n
+    # oldSize                      ; length of varNames (use only temporarily)
+    0 varNames 2 - @ -> oldSize    ; actual size (using pointer arithmetics)
+    oldSize 4 + wordI +            ; new size (in bytes)
+    dup
+    0 varNames 4 - @               ; maximum size (using pointer arithmetics)
+    if > errSymbolsFull            ; check sizes
+
+    ; new size is on stack
+;    dup "2a DEBUG new size: " .s . .n
+    0 varNames 2 - !               ; write new size to string buffer (using pointer arithmetics)
+; "2 DEBUG INT VARS: " .s varNames .s .n
+
+    ; append strlen to varNames (2 bytes)
+    wordI 0 varNames oldSize + !
+; "3 DEBUG INT VARS: " .s varNames .s .n
+; "3a DEBUG lastWord: " .s lastWord .s .n
+
+    ; append string
+    ; lastWord varNames oldSize + 4 + ->>
+
+    ; do copy explicitly
+    ; ->> does not work :-(
+    # dest ; index
+    ; # i
+    0 -> i
+    oldSize 4 + -> dest
+    : newVar.l
+        i lastWord @s dest i + varNames !s
+        i 1 + -> i
+    i wordI if < newVar.l
+    wordI 0 varNames oldSize + 2 + !    ; write strlen (2 bytes)
+
+; "4 DEBUG INT VARS: " .s varNames .s .n
+
+    ; write index (oldSize + 4) to varX
+    oldSize 4 + varXLen varX !
+    varXLen 1 + -> varXLen
+
+; "5 DEBUG INT VARS: " .s varNames .s .n
+
+return
+
+: errSymbolsFull
+    "ERROR: symbol table is full" .s .n
+    "DEBUG: lastWord: " .s lastWord .s .n
+    goto _end
+
+: getType
+#c type
+; lookup lastWord in symbol tables to get type.
+; 0 not declared
+; 1 int
+; 2 char
+; 11 int array
+; 12 string
+    0 -> type
+    0 -> i
+    : gt.l
+        i varX @ varNames + ; name from symbol table
+        lastWord ifs = gt.f ; compare with lastWord
+        i 1 + -> i
+    i varXLen if < gt.l
+    goto gt.e
+: gt.f
+    i varTypes @s
+; dup "DEBUG getType: " .s . .n
+    -> type
+: gt.e
+return
+
+: genName
+    gosub getType
+    type 1  if = getInt
+    type 2  if = getChr
+    type 11 if = getArrRef
+    type 12 if = getStrRef
+    "ERROR: " .s lastWord .s " is not declared" .s .n
+return
+
+: getInt
+    gosub pushAX
+    gosub movAX " [INT_" .s lastWord .s '] .c .n
+return
+
+: getChr
+    gosub pushAX
+    "mov al, [CHR_" .s lastWord .s '] .c .n
+    goto xorAHAH
+
+: getArrRef
+    gosub pushAX
+    gosub movAX " ARR_" .s lastWord .s .n
+return
+
+: getStrRef
+    gosub pushAX
+    gosub movAX " STR_" .s lastWord .s .n
+return
+
+
+: generate
+#c c0 #c c1 #c c2
+; generate assembly code for word in variable lastWord
+; wordLength in variable wordI
+    wordI 0 if = generate.e     ; word is empty
+        isString 1 if = gPushString
+        gosub isInteger
+        isInteger 1 if = gPushInt
+        0 lastWord @s -> c0
+    wordI 1 if > generate.2
+    ; generate 1
+        c0 '; if = generate.e   ; comment
+        c0 '. if = gPrintI
+        c0 '+ if = gAddI
+        c0 '- if = gSubI
+        c0 '* if = gMulI
+        c0 '/ if = gDivI
+        c0 '~ if = negAX
+        c0 '# if = declInt
+        c0 ': if = gLabel
+        c0 '= if = gE
+        c0 '< if = gL
+        c0 '> if = gG
+        c0 '? if = gInI
+        c0 '! if = gSetIntArr
+        c0 '@ if = gGetIntArr
+    : generate.2
+        1 lastWord @s -> c1
+    wordI 2 if > generate.3
+        c0 '' if = pushChar     ; character
+        lastWord ".c" ifs = gPrintC
+        lastWord ".s" ifs = gPrintS
+        lastWord ".n" ifs = gPrintLn
+        lastWord "->" ifs = gSetVar
+        lastWord "if" ifs = gIf
+        lastWord "<=" ifs = gLE
+        lastWord ">=" ifs = gGE
+        lastWord "<>" ifs = gNE
+        lastWord "##" ifs = declArr
+        lastWord "#s" ifs = declStr
+        lastWord "#c" ifs = declChr
+        lastWord "!s" ifs = gSetChrArr
+        lastWord "@s" ifs = gGetChrArr
+        lastWord "%%" ifs = gRefSize
+        lastWord "?s" ifs = gInS
+        lastWord "?c" ifs = gInC
+    : generate.3
+        2 lastWord @s -> c2
+    wordI 3 if > generate.4
+        lastWord "dup" ifs = gDup
+        lastWord "ifs" ifs = gCompStr
+        lastWord "->>" ifs = gCopyStr
+        lastWord "s2i" ifs = gS2I
+
+    : generate.4
+; "DEBUG " .s lastWord .s " isName " .s isName . .n
+        lastWord "swap" ifs = gSwap
+        lastWord "drop" ifs = gDrop
+        lastWord "goto" ifs = gGoto
+        lastWord "gosub" ifs = gGosub
+        lastWord "return" ifs = gReturn
+        gosub isName
+        isName 1 if = genName
+    "UNKNOWN: " .s lastWord .s .n
+
+: generate.e
+return
+
+
+; ---------------------------------------------------
+; declare variables
+; ---------------------------------------------------
+
+: declInt
+    gosub getWord               ; read identifier
+    gosub newVar                ; add to symbol table
+    1 varXLen 1 - varTypes !s   ; write type (int)
+return
+
+: declChr
+    gosub getWord               ; read identifier
+    gosub newVar                ; add to symbol table
+    2 varXLen 1 - varTypes !s   ; write type (int)
+return
+
+## arrSizes 100     ; sizes of arrays
+
+: declArr
+    gosub getWord               ; read identifier
+    gosub newVar                ; add to symbol table
+    11 varXLen 1 - varTypes !s  ; write type (int array)
+    gosub getWord               ; read size
+    lastWord s2i                ; string to int
+    varXLen 1 - arrSizes !      ; write size
+return
+
+: declStr
+    gosub getWord               ; read identifier
+    gosub newVar                ; add to symbol table
+    12 varXLen 1 - varTypes !s  ; write type (string)
+    gosub getWord               ; read size
+    lastWord s2i                ; string to int
+    varXLen 1 - arrSizes !      ; write size
+return
+
+
+; ---------------------------------------------------
+; generate statements
+; ---------------------------------------------------
+
+: pushChar gosub pushAX gosub movAX c1 . .n return
+
+: gDup goto pushAX ; return
+: gDrop goto popAX ; return
+
+: gSwap
+    gosub movBXAX
+    gosub popAX
+    goto pushBX
+
+: gPushInt
+    gosub pushAX
+    gosub movAX lastWord .s .n
+return
+
+# dataCount
+: gPushString
+; lastWord is string with " at the beginning and no " at the end
+    gosub sectionData
+    gosub dataW wordI 1 - . .n
+    "DATA_" .s dataCount . ": db " .s lastWord .s '" .c .n
+    gosub sectionText
+    gosub pushAX
+    gosub movAX " DATA_" .s dataCount . .n
+    dataCount 1 + -> dataCount
+return
+
+: gPrintC "call printc" .s .n goto popAX
+: gPrintS "call prints" .s .n goto popAX
+: gPrintI "call printi" .s .n goto popAX
+: gPrintLn "call println" .s .n return
+: gS2I "call s2int" .s .n return
+: gAddI gosub movBXAX gosub popAX "add ax, bx" .s .n return
+: gSubI gosub movBXAX gosub popAX "sub ax, bx" .s .n return
+: gMulI gosub movBXAX gosub popAX "imul ax, bx" .s .n return
+: gDivI gosub movBXAX gosub popAX "cwd" .s .n "idiv bx" .s .n return
+: gCopyStr gosub movBXAX gosub popAX "call copystr" .s .n goto popAX
+: gCompStr gosub movBXAX gosub popAX "call compstr" .s .n goto popAX
+
+: gSetVar
+    gosub getWord   ; read identifier
+    gosub getType   ; get type from symbol table
+    type 0 if = sv.n
+    type 1 if = gSetInt
+    type 2 if = gSetChr
+    "ERROR Type not implemented: " .s type . .n goto _end
+    : sv.n  "ERROR Variable not defined: " .s lastWord .s .n goto _end
+
+: gSetInt
+    "mov [INT_" .s lastWord .s "], ax" .s .n
+    gosub popAX
+return
+
+: gSetChr
+    "mov [CHR_" .s lastWord .s "], al" .s .n
+    gosub popAX
+return
+
+: gSetIntArr
+    gosub movBXAX
+    gosub popSI
+    gosub shlSI1
+    gosub popAX
+    "mov [bx+si], ax" .s .n
+    goto popAX
+
+: gSetChrArr
+    gosub movBXAX
+    gosub popSI
+    gosub popAX
+    "mov [bx+si], al" .s .n
+    goto popAX
+
+: gGetIntArr
+    gosub movBXAX
+    gosub popSI
+    gosub shlSI1
+    "mov ax, [bx+si]" .s .n
+return
+
+: gGetChrArr
+    gosub movBXAX
+    gosub popSI
+    "mov al, [bx+si]" .s .n
+    goto xorAHAH
+
+: gLabel
+    gosub getWord   ; read identifier for label
+    "LBL_" .s lastWord .s ': .c .n
+return
+
+: gGoto
+    gosub getWord   ; read identifier for label
+    "jmp LBL_" .s lastWord .s .n
+return
+
+: gGosub
+    gosub getWord   ; read identifier for label
+    "call LBL_" .s lastWord .s .n
+return
+
+: gReturn "ret" .s .n return
+
+: gIf
+    gosub popBX
+    gosub cmpBXAX
+    goto  popAX
+
+: gE gosub getWord "je LBL_" .s lastWord .s .n return
+: gL gosub getWord "jl LBL_" .s lastWord .s .n return
+: gG gosub getWord "jg LBL_" .s lastWord .s .n return
+: gLE gosub getWord "jle LBL_" .s lastWord .s .n return
+: gGE gosub getWord "jge LBL_" .s lastWord .s .n return
+: gNE gosub getWord "jne LBL_" .s lastWord .s .n return
+
+: gInI
+    gosub pushAX
+    "call inputi" .s .n
+return
+
+: gInC
+    gosub pushAX
+    "call inputc" .s .n
+return
+
+: gInS
+    gosub pushAX
+    "call inputs" .s .n
+    "call println" .s .n
+return
+
+: gRefSize
+    gosub movBXAX
+    gosub movAX " [bx-2]" .s .n
+return
+
+
+; ---------------------------------------------------
+; generate opcodes
+; ---------------------------------------------------
+: pushAX  "push ax"   .s .n return
+: popAX   "pop ax"    .s .n return
+: pushBX  "push bx"   .s .n return
+: popBX   "pop bx"    .s .n return
+: popSI   "pop si"    .s .n return
+: negAX   "neg ax"    .s .n return
+: shlSI1  "shl si, 1" .s .n return
+: movAX   "mov ax," .s return
+: movBXAX "mov bx, ax" .s .n return
+: cmpBXAX "cmp bx, ax" .s .n return
+: xorAHAH "xor ah, ah" .s .n return
+: sectionData "section .data" .s .n return
+: sectionText "section .text" .s .n return
+: dataB "    db " .s return
+: dataW "    dw " .s return
+
+
+: printIntSyms  ; for debugging
+"DEBUG int vars: " .s varNames .s .n
+    0 -> i
+    : sym.l
+        i varX @
+        dup . 32 .c
+        varNames + .s
+        .n
+        i 1 + -> i
+    i varXLen if < sym.l
+return
+
+: gVarsAndArrays
+    varXLen 0 if = vaa.e
+        "section .data" .s .n
+        gosub gIntSpace
+        gosub gChrSpace
+        gosub gArrSpace
+        gosub gStrSpace
+        "section .text" .s .n
+: vaa.e
+return
+
+: gIntSpace
+; generate space for Ints
+; INT_name: dw 0
+    0 -> i
+    : gis
+        i varTypes @s   ; type
+        1 if <> gis.n
+        "INT_" .s
+        i varX @ varNames + .s
+        ": dw 0" .s .n
+    : gis.n
+        i 1 + -> i
+    i varXLen if < gis
+return
+
+: gChrSpace
+; generate space for Ints
+; CHR_name: db 0
+    0 -> i
+    : gcs
+        i varTypes @s   ; type
+        2 if <> gcs.n
+        "CHR_" .s
+        i varX @ varNames + .s
+        ": db 0" .s .n
+    : gcs.n
+        i 1 + -> i
+    i varXLen if < gcs
+return
+
+: gArrSpace
+; generate space for Arrays
+; ARR_name: times <size> dw 0
+    0 -> i
+    : gas
+        i varTypes @s   ; type
+        11 if <> gas.n
+        "ARR_" .s
+        i varX @ varNames + .s
+        ": times " .s
+        i arrSizes @ .  ; size
+        " dw 0" .s .n
+    : gas.n
+        i 1 + -> i
+    i varXLen if < gas
+return
+
+: gStrSpace
+; generate space for Arrays
+; dw <size>
+; dw 0
+; STR_name: times <size> db 0
+    0 -> i
+    : gss
+        i varTypes @s   ; type
+        12 if <> gss.n
+        "dw " .s i arrSizes @ . .n ; size
+        "dw 0" .s .n
+        "STR_" .s
+        i varX @ varNames + .s
+        ": times " .s
+        i arrSizes @ .  ; size
+        " db 0" .s .n
+    : gss.n
+        i 1 + -> i
+    i varXLen if < gss
+return
+
+: main
+    0 -> dataCount
+    0 -> varXLen
+
+    gosub prelude
+
+    gosub getChar
+    : loop
+        gosub getWord
+; "DEBUG lastWord: " .s '' .c lastWord .s '' .c .n
+        lastWord %% 0 if = _end
+        gosub generate
+    goto loop
+
+    : _end
+    gosub end
+    gosub gVarsAndArrays
+    ; gosub printIntSyms
+

@@ -1,0 +1,8 @@
+; test for symbol table of int vars
+# a
+# bc
+# def
+# ghij
+# klmno
+# pqrstu
+# vwxyz

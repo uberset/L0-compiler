@@ -37,6 +37,7 @@ object TestGenerator8086 {
             test("gosubre"),
             test("array0"),
             test("array"),
+            test("arrayc"),
             test("fornext"),
             test("for1"),
             test("swap"),
@@ -48,7 +49,10 @@ object TestGenerator8086 {
             test("string"),
             test("instr"),
             test("inchar"),
-            test("charlit")
+            test("charlit"),
+            test("ifstring"),
+            test("intsym"),
+            test("compiler")
         )
         val tests = results.size
         val passed = results.filter(identity).size
