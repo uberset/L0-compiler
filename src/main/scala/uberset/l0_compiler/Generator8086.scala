@@ -117,6 +117,14 @@ trait Generator8086 extends Generator {
               |""".stripMargin)
     }
 
+    override def s2i(): Unit = {
+        // ( -> value )
+        out.append(
+            """call s2int
+              |""".stripMargin
+        )
+    }
+
     override def inputInteger(): Unit = {
         // ( -> value )
         out.append(
@@ -260,7 +268,9 @@ trait Generator8086 extends Generator {
 
     override def label(nr: String) = {
         val lbl = labelString(nr)
-        out.append(s"$lbl:\n")
+        out.append(
+            s"""$lbl:
+               |""".stripMargin)
     }
 
     private def labelString(lbl: String) = {
@@ -269,7 +279,9 @@ trait Generator8086 extends Generator {
 
     override def goto(nr: String): Unit = {
         val lbl = labelString(nr)
-        out.append(s"jmp $lbl\n")
+        out.append(
+            s"""jmp $lbl
+               |""".stripMargin)
     }
 
     override def compare(): Unit = {
@@ -303,7 +315,9 @@ trait Generator8086 extends Generator {
 
     override def gosub(nr: String): Unit = {
         val lbl = labelString(nr)
-        out.append(s"call $lbl\n")
+        out.append(
+            s"""call $lbl
+               |""".stripMargin)
     }
 
     override def stmReturn(): Unit = {
@@ -341,7 +355,7 @@ trait Generator8086 extends Generator {
             """mov bx, ax
               |pop si
               |shl si, 1
-              |mov ax, [bx + si]
+              |mov ax, [bx+si]
               |""".stripMargin)
     }
 
@@ -350,14 +364,16 @@ trait Generator8086 extends Generator {
         out.append(
             """mov bx, ax
               |pop si
-              |mov al, [bx + si]
+              |mov al, [bx+si]
               |xor ah, ah
               |""".stripMargin)
     }
 
     private def varsAndArrays(): Unit = {
         if(!intNames.isEmpty || !arrSizes.isEmpty || !strSizes.isEmpty) {
-            out.append("section .data\n")
+            out.append(
+                """section .data
+                  |""".stripMargin)
             // define all integers in the data section
             for (id <- intNames) {
                 val lbl = "INT_" + id + ":"
@@ -378,7 +394,7 @@ trait Generator8086 extends Generator {
             for ((id, size) <- arrSizes) {
                 val lbl = "ARR_" + id + ":"
                 out.append(
-                    s"""$lbl   times ${size} dw 0
+                    s"""$lbl times ${size} dw 0
                        |""".stripMargin
                 )
             }
@@ -386,18 +402,19 @@ trait Generator8086 extends Generator {
             for ((id, size) <- strSizes) {
                 val lbl = "STR_" + id + ":"
                 out.append(
-                    s"""       dw    ${size}
-                       |       dw    0
-                       |$lbl   times ${size} db 0
+                    s"""dw $size
+                       |dw 0
+                       |$lbl times ${size} db 0
                        |""".stripMargin
                 )
             }
-            out.append("section .text\n")
+            out.append(
+                """section .text
+                  |""".stripMargin)
         }
     }
 
     override def prelude(): Unit = {
-        varsAndArrays()
         out.append(
             s"""org 100h
                |mov ax, -1
@@ -411,6 +428,7 @@ trait Generator8086 extends Generator {
               |int 0x21
               |""".stripMargin
         )
+        varsAndArrays()
         Library8086.library(out)
     }
 

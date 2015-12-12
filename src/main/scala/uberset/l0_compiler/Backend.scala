@@ -117,6 +117,7 @@ class Backend(programName : String) { this: Generator =>
             case Swap() => swap()
             case Dup() => dup()
             case Drop() => drop()
+            case S2I() => s2i()
         }
     }
 

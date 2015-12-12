@@ -14,10 +14,10 @@ trait Generator {
     val className: String
 
     val out = ListBuffer[String]()
-    var intNames = Set[String]()
-    var chrNames = Set[String]()
-    var arrSizes = mutable.HashMap[String, Int]()
-    var strSizes = mutable.HashMap[String, Int]()
+    var intNames = mutable.LinkedHashSet[String]()      // preserves insertion order
+    var chrNames = mutable.LinkedHashSet[String]()      // preserves insertion order
+    var arrSizes = mutable.LinkedHashMap[String, Int]() // preserves insertion order
+    var strSizes = mutable.LinkedHashMap[String, Int]() // preserves insertion order
 
     def prelude(): Unit
     def end(): Unit
@@ -57,5 +57,6 @@ trait Generator {
     def swap(): Unit
     def dup(): Unit
     def drop(): Unit
+    def s2i(): Unit
 
 }

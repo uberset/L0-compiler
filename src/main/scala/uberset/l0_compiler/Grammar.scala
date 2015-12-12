@@ -42,6 +42,7 @@ case class Return() extends Statement
 case class Swap() extends Statement
 case class Dup() extends Statement
 case class Drop() extends Statement
+case class S2I() extends Statement
 
 abstract sealed class Declaration
 case class DeclInt(id: String) extends Declaration
