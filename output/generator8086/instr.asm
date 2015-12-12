@@ -1,11 +1,3 @@
-section .data
-INT_len: dw 0
-INT_i: dw 0
-CHR_c: db 0
-       dw    100
-       dw    0
-STR_str:   times 100 db 0
-section .text
 org 100h
 mov ax, -1
 push ax
@@ -47,7 +39,7 @@ push ax
 mov ax, [INT_i]
 mov bx, ax
 pop si
-mov al, [bx + si]
+mov al, [bx+si]
 xor ah, ah
 mov [CHR_c], al
 pop ax
@@ -76,6 +68,14 @@ pop ax
 jl LBL_L
 mov ax,0x4c00
 int 0x21
+section .data
+INT_len: dw 0
+INT_i: dw 0
+CHR_c: db 0
+dw 100
+dw 0
+STR_str: times 100 db 0
+section .text
 
 printc:	; (AL)->()
         ; print a char to stdout

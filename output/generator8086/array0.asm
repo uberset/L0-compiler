@@ -1,6 +1,3 @@
-section .data
-ARR_a:   times 3 dw 0
-section .text
 org 100h
 mov ax, -1
 push ax
@@ -46,7 +43,7 @@ mov ax, ARR_a
 mov bx, ax
 pop si
 shl si, 1
-mov ax, [bx + si]
+mov ax, [bx+si]
 call printi
 pop ax
 call println
@@ -57,7 +54,7 @@ mov ax, ARR_a
 mov bx, ax
 pop si
 shl si, 1
-mov ax, [bx + si]
+mov ax, [bx+si]
 call printi
 pop ax
 call println
@@ -68,12 +65,15 @@ mov ax, ARR_a
 mov bx, ax
 pop si
 shl si, 1
-mov ax, [bx + si]
+mov ax, [bx+si]
 call printi
 pop ax
 call println
 mov ax,0x4c00
 int 0x21
+section .data
+ARR_a: times 3 dw 0
+section .text
 
 printc:	; (AL)->()
         ; print a char to stdout

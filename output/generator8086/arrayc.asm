@@ -1,8 +1,3 @@
-section .data
-       dw    3
-       dw    0
-STR_arr:   times 3 db 0
-section .text
 org 100h
 mov ax, -1
 push ax
@@ -44,7 +39,7 @@ push ax
 mov ax, STR_arr
 mov bx, ax
 pop si
-mov al, [bx + si]
+mov al, [bx+si]
 xor ah, ah
 call printc
 pop ax
@@ -55,7 +50,7 @@ push ax
 mov ax, STR_arr
 mov bx, ax
 pop si
-mov al, [bx + si]
+mov al, [bx+si]
 xor ah, ah
 call printc
 pop ax
@@ -66,13 +61,18 @@ push ax
 mov ax, STR_arr
 mov bx, ax
 pop si
-mov al, [bx + si]
+mov al, [bx+si]
 xor ah, ah
 call printc
 pop ax
 call println
 mov ax,0x4c00
 int 0x21
+section .data
+dw 3
+dw 0
+STR_arr: times 3 db 0
+section .text
 
 printc:	; (AL)->()
         ; print a char to stdout

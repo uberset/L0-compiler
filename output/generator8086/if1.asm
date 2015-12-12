@@ -1,6 +1,3 @@
-section .data
-INT_i: dw 0
-section .text
 org 100h
 mov ax, -1
 push ax
@@ -37,6 +34,9 @@ pop ax
 jle LBL_10
 mov ax,0x4c00
 int 0x21
+section .data
+INT_i: dw 0
+section .text
 
 printc:	; (AL)->()
         ; print a char to stdout

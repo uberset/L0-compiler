@@ -1,11 +1,3 @@
-section .data
-       dw    10
-       dw    0
-STR_s:   times 10 db 0
-       dw    10
-       dw    0
-STR_f:   times 10 db 0
-section .text
 org 100h
 mov ax, -1
 jmp LBL_main
@@ -461,6 +453,14 @@ pop ax
 call LBL_test
 mov ax,0x4c00
 int 0x21
+section .data
+dw 10
+dw 0
+STR_f: times 10 db 0
+dw 10
+dw 0
+STR_s: times 10 db 0
+section .text
 
 printc:	; (AL)->()
         ; print a char to stdout
